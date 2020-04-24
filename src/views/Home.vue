@@ -8,10 +8,10 @@
               <a class="button btn-nav-log-in" target="_blank" href="https://twitter.com/neto_dev">
                 <i class="mdi mdi-twitter"></i>
               </a>
-              <a class="button btn-nav-register is-rounded">
+              <a class="button btn-nav-register is-rounded" href="/registrate">
                 <strong>Registrate</strong>
               </a>
-              <a class="button btn-nav-log-in">
+              <a class="button btn-nav-log-in" href="ingresa">
                 Iniciar Sesión
               </a>
             </div>
