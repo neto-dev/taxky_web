@@ -8,39 +8,104 @@
           class="monster-img"
         />
         <div class="form-content">
-          <h1 class="head-title">Regístrate</h1>
-          <div class="inputs">
-            <b-field>
-              <b-input placeholder="Nombre" size="is-medium" icon="account">
-              </b-input>
-            </b-field>
-            <b-field>
-              <b-input placeholder="Apellidos" size="is-medium" icon="account">
-              </b-input>
-            </b-field>
-            <b-field>
-              <b-input placeholder="Correo Electrónico" size="is-medium" icon="email">
-              </b-input>
-            </b-field>
-
-            <b-field>
-              <b-input type="password" placeholder="Contraseña" size="is-medium" icon="key" password-reveal>
-              </b-input>
-            </b-field>
-          </div>
-          <b-button
-            type="is-primary"
-            icon-right="arrow-right-thick"
-            rounded
-            size="is-medium"
-            class="btn-header-register"
-            expanded
-            >Regístrate</b-button
-          >
-          <div class="with-account">
-            <p>¿Ya tienes cuenta?</p>
-            <a href="/ingresa">Ingresa</a>
-          </div>
+          <ValidationObserver ref="observer" v-slot="{ passes }">
+            <h1 class="head-title">Regístrate</h1>
+            <div class="inputs">
+              <ValidationProvider
+                rules="required"
+                name="FirstName"
+                v-slot="{ errors, valid }"
+              >
+                <b-field
+                  :type="{ 'is-danger': errors[0], 'is-success': valid }"
+                  :message="errors"
+                >
+                  <b-input
+                    v-model="FirstName"
+                    placeholder="Nombre"
+                    size="is-medium"
+                    icon="account"
+                  >
+                  </b-input>
+                </b-field>
+              </ValidationProvider>
+              <ValidationProvider
+                rules="required"
+                name="LastName"
+                v-slot="{ errors, valid }"
+              >
+                <b-field
+                  :type="{ 'is-danger': errors[0], 'is-success': valid }"
+                  :message="errors"
+                >
+                  <b-input
+                    v-model="LastName"
+                    placeholder="Apellidos"
+                    size="is-medium"
+                    icon="account"
+                  >
+                  </b-input>
+                </b-field>
+              </ValidationProvider>
+              <ValidationProvider
+                rules="required|email"
+                name="Email"
+                v-slot="{ errors, valid }"
+              >
+                <b-field
+                  :type="{ 'is-danger': errors[0], 'is-success': valid }"
+                  :message="errors"
+                >
+                  <b-input
+                    placeholder="Email"
+                    v-model="Email"
+                    type="email"
+                    icon="email"
+                    icon-right="close-circle"
+                    icon-right-clickable
+                    size="is-medium"
+                    @icon-right-click="clearIconClick"
+                  >
+                  </b-input>
+                </b-field>
+              </ValidationProvider>
+              <ValidationProvider
+                rules="required"
+                vid="password"
+                name="Password"
+                v-slot="{ errors, valid }"
+              >
+                <b-field
+                  :type="{ 'is-danger': errors[0], 'is-success': valid }"
+                  :message="errors"
+                >
+                  <b-input
+                    v-model="Password"
+                    type="password"
+                    placeholder="Contraseña"
+                    size="is-medium"
+                    icon="key"
+                    password-reveal
+                  >
+                  </b-input>
+                </b-field>
+              </ValidationProvider>
+            </div>
+            <b-button
+              type="is-primary"
+              icon-right="arrow-right-thick"
+              rounded
+              size="is-medium"
+              class="btn-header-register"
+              expanded
+              @click="passes(submit)"
+              >Regístrate</b-button
+            >
+            <div class="with-account">
+              <p>¿Ya tienes cuenta?</p>
+              <a href="/ingresa">Ingresa</a>
+            </div>
+          </ValidationObserver>
         </div>
       </div>
     </div>
@@ -48,10 +113,71 @@
 </template>
 <script>
 // @ is an alias to /src
+// Importamos el repositorio de usuario
+import UserRepository from "@/repository/users";
+import { ValidationObserver, ValidationProvider } from "vee-validate";
 
 export default {
+  $_veeValidate: {
+    validator: "new",
+  },
   name: "Home",
-  components: {},
+  data: () => ({
+    // Variales para almacenar informacion de los inputs de nuestro formulario de registro
+    FirstName: "",
+    LastName: "",
+    Email: "",
+    Password: "",
+
+    //Variable para validar si ha surgido un error con el email
+    error_email: false,
+  }),
+  components: {
+    ValidationObserver,
+    ValidationProvider,
+  },
+  methods: {
+    submit() {
+      UserRepository.filter({ Where: `email = '${this.Email}'` })
+        .then((data) => {
+          console.log("Data", data)
+          if (data.results.length == 0) {
+            let data = {
+              FirstName: this.FirstName,
+              LastName: this.LastNamme,
+              Email: this.Email,
+              Password: this.Password,
+            };
+            this.$store
+            .dispatch("register", data)
+            .then(data => {
+              console.log(data)
+              this.$router.push('dashboard');
+            })
+            .catch(err => {
+              this.error_email = true;
+              console.log(err);
+            });
+          } else {
+            this.$buefy.toast.open({
+              duration: 5000,
+              message: `El Correo Electronico ingresado ya se encuentra registrado, intenta con otro.`,
+              position: "is-bottom",
+              type: "is-danger",
+            });
+          }
+        })
+        .catch((err) => {
+          console.log(err);
+          this.$buefy.toast.open({
+            duration: 5000,
+            message: `El Correo Electronico ingresado ya se encuentra registrado, intenta con otro.`,
+            position: "is-bottom",
+            type: "is-danger",
+          });
+        });
+    },
+  },
 };
 </script>
 
@@ -85,7 +211,7 @@ export default {
   width: 400px;
 }
 
-.form-content .inputs{
+.form-content .inputs {
   padding: 50px 0 10px 0;
 }
 
@@ -106,19 +232,18 @@ export default {
   width: 50%;
 }
 
-.with-account{
+.with-account {
   display: flex;
   justify-content: center;
   padding: 10px 0;
 }
 
 .with-account p {
-  color: #604B87;
-  
+  color: #604b87;
 }
 
-.with-account a{
-  color:#604B87;
+.with-account a {
+  color: #604b87;
   font-weight: bold;
   margin-left: 5px;
 }
