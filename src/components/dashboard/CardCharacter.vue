@@ -1,8 +1,8 @@
 <template class="template-card">
   <div class="content-cards">
     <div class="card-character">
-      <img :src="avatarImage(dataCharacter.Name)" class="avatar-img" alt="" />
-      <h1 class="character-name">{{ dataCharacter.Name }}</h1>
+      <img :src="avatarImage(dataCharacter.NickName)" class="avatar-img" alt="" />
+      <h1 class="character-name">{{ dataCharacter.NickName }}</h1>
       <div class="divider div-transparent div-arrow-down"></div>
       <div class="pints-tasks columns">
         <div class="points column">
@@ -92,7 +92,7 @@ export default {
 .content-cards {
   background: white;
   border-radius: 20px;
-  margin: 30px 30px 10px 30px;
+  margin: 30px 30px 30px 30px;
   position: relative;
   text-align: center;
   z-index: 10;

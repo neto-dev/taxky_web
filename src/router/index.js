@@ -38,6 +38,33 @@ const routes = [
     },
     component: () => import("../views/dashboard/Home.vue"),
   },
+
+  {
+    path: "/dashboard/personajes",
+    name: "Characters",
+    meta: {
+      requiresAuth: true
+    },
+    component: () => import("../views/dashboard/characters/Home.vue"),
+  },
+
+  {
+    path: "/dashboard/premios",
+    name: "Awards",
+    meta: {
+      requiresAuth: true
+    },
+    component: () => import("../views/dashboard/awards/Home.vue"),
+  },
+
+  {
+    path: "/dashboard/tareas",
+    name: "Tasks",
+    meta: {
+      requiresAuth: true
+    },
+    component: () => import("../views/dashboard/tasks/Home.vue"),
+  },
 ];
 
 const router = new VueRouter({

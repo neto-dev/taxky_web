@@ -7,7 +7,21 @@
       <h1 class="dashboard-title">
         Taxky - Dashboard
       </h1>
-      <div class="columns is-desktop content-cards-character">
+       <div
+        v-if="characters.length > 0"
+        class="columns is-multiline is-variable  content-cards-character"
+      >
+        <CardCharacter
+          class="column is-11-mobile is-two-fifths-tablet is-one-quarter-desktop is-one-quarter-widescreen is-one-quarter-fullhd"
+          v-for="item in characters"
+          v-bind:key="item.ID"
+          v-bind:dataCharacter="item"
+        ></CardCharacter>
+      </div>
+      <div
+        v-if="characters.length === 0"
+        class="columns is-desktop content-cards-character"
+      >
         <CardCharacter
           class="column"
           v-for="item in defaultUsers"
@@ -15,7 +29,7 @@
           v-bind:dataCharacter="item"
         ></CardCharacter>
       </div>
-      <div class="no-characters">
+      <div v-if="characters.length === 0" class="no-characters">
         <h2>Aun no haz registrado participantes. ¿Que esperas?</h2>
         <b-button
           type="is-primary"
@@ -46,34 +60,49 @@
 <script>
 import Navbar from "@/components/dashboard/Navbar";
 import CardCharacter from "@/components/dashboard/CardCharacter";
+import UserRepository from "@/repository/users";
 
 export default {
   components: {
     Navbar,
     CardCharacter,
   },
-  data: () => ({
+   data: () => ({
     defaultUsers: [
       {
         ID: 1,
-        Name: "Daniel",
+        NickName: "Daniel",
         Points: 150,
         Tasks: 10,
       },
       {
         ID: 2,
-        Name: "Maria",
-        Points: 150,
-        Tasks: 10,
+        NickName: "Maria",
+        Points: 120,
+        Tasks: 14,
       },
       {
         ID: 3,
-        Name: "Paquito",
-        Points: 150,
-        Tasks: 10,
+        NickName: "Paquito",
+        Points: 190,
+        Tasks: 8,
       },
     ],
+    characters: [],
   }),
+  mounted() {
+    this.getCharacters();
+  },
+  methods: {
+    getCharacters(){
+      let userParse = JSON.parse(localStorage.user_data);
+      let id = userParse.ID;
+      UserRepository.show(id).then((data) => {
+        console.log(data);
+        this.characters = data.results.Characters;
+      });
+    }
+  },
 };
 </script>
 
@@ -112,7 +141,7 @@ export default {
 }
 
 .character {
-  background: #60D0E9;
+  background: #60d0e9;
 }
 
 .dashboard {
@@ -131,6 +160,7 @@ export default {
 
 .content-cards-character {
   padding: 70px 0;
+  justify-content: space-between;
 }
 
 .menu {
