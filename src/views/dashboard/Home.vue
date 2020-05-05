@@ -7,7 +7,7 @@
       <h1 class="dashboard-title">
         Taxky - Dashboard
       </h1>
-       <div
+      <div
         v-if="characters.length > 0"
         class="columns is-multiline is-variable  content-cards-character"
       >
@@ -40,15 +40,24 @@
         >
       </div>
       <div class="menu columns">
-        <div class="column card-menu character">
+        <div
+          class="column card-menu character"
+          @click="$router.push({ name: 'Characters' })"
+        >
           <img src="@/assets/dash-menu-img-1.png" alt="" />
           <h3>Participantes</h3>
         </div>
-        <div class="column card-menu activities">
+        <div
+          class="column card-menu activities"
+          @click="$router.push({ name: 'Tasks' })"
+        >
           <img src="@/assets/dash-menu-img-2.png" alt="" />
           <h3>Actividades</h3>
         </div>
-        <div class="column card-menu awards">
+        <div
+          class="column card-menu awards"
+          @click="$router.push({ name: 'Awards' })"
+        >
           <img src="@/assets/dash-menu-img-3.png" alt="" />
           <h3>Premios</h3>
         </div>
@@ -67,7 +76,7 @@ export default {
     Navbar,
     CardCharacter,
   },
-   data: () => ({
+  data: () => ({
     defaultUsers: [
       {
         ID: 1,
@@ -94,14 +103,14 @@ export default {
     this.getCharacters();
   },
   methods: {
-    getCharacters(){
+    getCharacters() {
       let userParse = JSON.parse(localStorage.user_data);
       let id = userParse.ID;
       UserRepository.show(id).then((data) => {
         console.log(data);
         this.characters = data.results.Characters;
       });
-    }
+    },
   },
 };
 </script>

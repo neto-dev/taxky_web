@@ -44,59 +44,137 @@
             </span>
           </b-table-column>
           <b-table-column centered label="Editar">
-            <b-button
-              type="is-info"
-              outlined
-              icon-left="account-edit"
-            >
-              
+            <b-button type="is-info" outlined icon-left="account-edit">
             </b-button>
-            
           </b-table-column>
           <b-table-column centered label="Eliminar">
-            <b-button
-              type="is-danger"
-              outlined
-              icon-left="delete-outline"
-            >
-              
+            <b-button type="is-danger" outlined icon-left="delete-outline">
             </b-button>
           </b-table-column>
         </template>
-        <template slot="empty">
-                <section class="section">
-                    <div class="content has-text-grey has-text-centered">
-                        <p>
-                            <b-icon
-                                icon="emoticon-sad"
-                                size="is-large">
-                            </b-icon>
-                        </p>
-                        <p>Aún no se registran personajes a tu perfil.</p>
-                        <b-button
+        <template slot="footer" v-if="!isCustom">
+          <div class="has-text-right">
+            <b-button
               type="is-primary"
               outlined
               icon-left="plus"
+              @click="isComponentModalActive = true"
             >
               Registrar nuevo
             </b-button>
-                    </div>
-                </section>
-            </template>
+          </div>
+        </template>
+        <template slot="empty">
+          <section class="section">
+            <div class="content has-text-grey has-text-centered">
+              <p>
+                <b-icon icon="emoticon-sad" size="is-large"> </b-icon>
+              </p>
+              <p>Aún no se registran personajes a tu perfil.</p>
+              <b-button
+                type="is-primary"
+                outlined
+                icon-left="plus"
+                @click="isComponentModalActive = true"
+              >
+                Registrar nuevo
+              </b-button>
+            </div>
+          </section>
+        </template>
       </b-table>
     </div>
+    <b-modal
+      :active.sync="isComponentModalActive"
+      has-modal-card
+      trap-focus
+      :destroy-on-hide="false"
+      aria-role="dialog"
+      aria-modal
+    >
+      <div class="modal-card" style="width: auto">
+        <ValidationObserver
+          class="modal-card-body"
+          ref="observer"
+          v-slot="{ passes }"
+        >
+          <header class="modal-card-head">
+            <p class="modal-card-title">{{ formTitle }}</p>
+          </header>
+          <section class="modal-card-body">
+            <ValidationProvider
+              rules="required"
+              name="Name"
+              v-slot="{ errors, valid }"
+            >
+              <b-field
+                :type="{ 'is-danger': errors[0], 'is-success': valid }"
+                :message="errors"
+              >
+                <b-input
+                  v-model="Name"
+                  placeholder="Nombre"
+                  size="is-medium"
+                  icon="account"
+                >
+                </b-input>
+              </b-field>
+            </ValidationProvider>
+            <ValidationProvider
+              rules="required"
+              name="NickName"
+              v-slot="{ errors, valid }"
+            >
+              <b-field
+                :type="{ 'is-danger': errors[0], 'is-success': valid }"
+                :message="errors"
+              >
+                <b-input
+                  v-model="NickName"
+                  placeholder="Sobrenombre"
+                  size="is-medium"
+                  icon="account"
+                >
+                </b-input>
+              </b-field>
+            </ValidationProvider>
+            <b-field label="Sexo">
+              <b-switch v-model="Sex" true-value="Hombre" false-value="Mujer">
+                {{ Sex }}
+              </b-switch>
+            </b-field>
+          </section>
+          <footer class="modal-card-foot">
+            <button
+              class="button"
+              type="button"
+              @click="isComponentModalActive = false"
+            >
+              Cerrar
+            </button>
+            <button @click="passes(submit)" class="button is-primary">
+              Registrar
+            </button>
+          </footer>
+        </ValidationObserver>
+      </div>
+    </b-modal>
   </section>
 </template>
 
 <script>
 import Navbar from "@/components/dashboard/Navbar";
 import UserRepository from "@/repository/users";
+import { ValidationObserver, ValidationProvider } from "vee-validate";
 
 export default {
   components: {
     Navbar,
+    ValidationObserver,
+    ValidationProvider,
   },
   data: () => ({
+    isComponentModalActive: false,
     characters: [],
     total: 0,
     loading: false,
@@ -105,7 +183,18 @@ export default {
     defaultSortOrder: "desc",
     page: 1,
     perPage: 5,
+
+    // Variable donde guardaremos el indice del elemento a editar
+    editedIndex: null,
+    Name: "",
+    NickName: "",
+    Sex: "Hombre",
   }),
+  computed: {
+    formTitle() {
+      return this.editedIndex === null ? "Nuevo Personaje" : "Editar Personaje";
+    },
+  },
   mounted() {
     this.getCharacters();
   },
@@ -114,8 +203,7 @@ export default {
       let userParse = JSON.parse(localStorage.user_data);
       let id = userParse.ID;
       UserRepository.show(id).then((data) => {
-        console.log(data);
-        // this.characters = data.results.Characters;
+        this.characters = data.results.Characters;
       });
     },
   },
