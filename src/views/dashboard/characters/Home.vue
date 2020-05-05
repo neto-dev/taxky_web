@@ -8,21 +8,14 @@
       <b-table
         style="margin-top: 50px"
         empty
-        :data="characters"
+        :data="Characters"
         :loading="loading"
         paginated
-        backend-pagination
-        :total="total"
         :per-page="perPage"
-        @page-change="onPageChange"
-        aria-next-label="Next page"
-        aria-previous-label="Previous page"
-        aria-page-label="Page"
-        aria-current-label="Current page"
-        backend-sorting
-        :default-sort-direction="defaultSortOrder"
-        :default-sort="[sortField, sortOrder]"
-        @sort="onSort"
+        aria-next-label="Sig"
+        aria-previous-label="Prev"
+        aria-page-label="Pagina"
+        aria-current-label="Pagina Actual"
       >
         <template slot-scope="props">
           <b-table-column field="Name" label="Nombre" sortable>
@@ -37,18 +30,30 @@
             <span>
               <b-icon
                 size="is-small"
-                :icon="props.row.Sex === 1 ? 'heart-circle' : 'star-circle'"
+                :icon="
+                  props.row.Sex === 'Mujer' ? 'heart-circle' : 'star-circle'
+                "
               >
               </b-icon>
-              {{ props.row.Sex === 1 ? "M" : "H" }}
+              {{ props.row.Sex === "Mujer" ? "M" : "H" }}
             </span>
           </b-table-column>
           <b-table-column centered label="Editar">
-            <b-button type="is-info" outlined icon-left="account-edit">
+            <b-button
+              type="is-info"
+              outlined
+              icon-left="account-edit"
+              @click="editItem(props.row)"
+            >
             </b-button>
           </b-table-column>
           <b-table-column centered label="Eliminar">
-            <b-button type="is-danger" outlined icon-left="delete-outline">
+            <b-button
+              type="is-danger"
+              outlined
+              icon-left="delete-outline"
+              @click="remove(props.row)"
+            >
             </b-button>
           </b-table-column>
         </template>
@@ -112,7 +117,7 @@
                 :message="errors"
               >
                 <b-input
-                  v-model="Name"
+                  v-model="workingItem.Name"
                   placeholder="Nombre"
                   size="is-medium"
                   icon="account"
@@ -130,7 +135,7 @@
                 :message="errors"
               >
                 <b-input
-                  v-model="NickName"
+                  v-model="workingItem.NickName"
                   placeholder="Sobrenombre"
                   size="is-medium"
                   icon="account"
@@ -139,8 +144,12 @@
               </b-field>
             </ValidationProvider>
             <b-field label="Sexo">
-              <b-switch v-model="Sex" true-value="Hombre" false-value="Mujer">
-                {{ Sex }}
+              <b-switch
+                v-model="workingItem.Sex"
+                true-value="Hombre"
+                false-value="Mujer"
+              >
+                {{ workingItem.Sex }}
               </b-switch>
             </b-field>
           </section>
@@ -165,6 +174,7 @@
 <script>
 import Navbar from "@/components/dashboard/Navbar";
 import UserRepository from "@/repository/users";
+import CharacterRepository from "@/repository/characters";
 import { ValidationObserver, ValidationProvider } from "vee-validate";
 
 export default {
@@ -174,21 +184,28 @@ export default {
     ValidationProvider,
   },
   data: () => ({
+    // Variable encargada de activar o desactivar nuestro modal con el cual registramos/editamos información
     isComponentModalActive: false,
-    characters: [],
-    total: 0,
+    // Variable que almacena la información de nuestra tabla
+    Characters: [],
+    // Variable que nos mostrara un gif de cargando miesntras se carga la información de nuestra tabla
     loading: false,
-    sortField: "vote_count",
-    sortOrder: "desc",
-    defaultSortOrder: "desc",
-    page: 1,
+    // Numero de registros por pagina/paginación
     perPage: 5,
+
+    // Variable para almacenar el valor del id de nuestro usuario logeado !Lo utilizaomos para referenciar información
+    userID: null,
 
     // Variable donde guardaremos el indice del elemento a editar
     editedIndex: null,
-    Name: "",
-    NickName: "",
-    Sex: "Hombre",
+
+    // Objeto en el que almacenamos información temporal para enviar a la api rest editar/crear
+    workingItem: {
+      Name: "",
+      NickName: "",
+      Sex: "Hombre",
+      UserID: null,
+    },
   }),
   computed: {
     formTitle() {
@@ -200,11 +217,81 @@ export default {
   },
   methods: {
     getCharacters() {
+      this.loading = true;
       let userParse = JSON.parse(localStorage.user_data);
+      this.userID = userParse.ID;
       let id = userParse.ID;
       UserRepository.show(id).then((data) => {
-        this.characters = data.results.Characters;
+        this.Characters = data.results.Characters;
+        this.loading = false;
       });
+    },
+    editItem(item) {
+      this.editedIndex = this.Characters.indexOf(item);
+      this.workingItem = Object.assign({}, item);
+      this.isComponentModalActive = true;
+    },
+    remove(item) {
+      this.$buefy.dialog.confirm({
+        title: "Eliminar Personaje",
+        message: `¿Estas seguro que deseas <b>Eliminar</b> el personaje <b>${item.NickName}</b>? Esta acción no se puede deshacer.`,
+        confirmText: "Eliminar Personaje",
+        type: "is-danger",
+        hasIcon: true,
+        onConfirm: () => this.removeItem(item),
+      });
+    },
+    removeItem(item) {
+      let index = this.Characters.indexOf(item);
+      CharacterRepository.delete(item.ID).then(() => {
+        this.Characters.splice(index, 1);
+        this.$buefy.toast.open({
+          message: "¡Personaje Eliminado!",
+          type: "is-success",
+          position: "is-bottom",
+        });
+      });
+    },
+    submit() {
+      if (this.editedIndex === null) {
+        this.workingItem.userID = this.userID;
+        CharacterRepository.create(this.workingItem)
+          .then((res) => {
+            this.$buefy.toast.open({
+              message: "Personaje creado Corractamente!",
+              type: "is-success",
+            });
+            this.isComponentModalActive = false;
+            this.workingItem.Name = this.workingItem.NickName = "";
+            this.Characters.unshift(res.results);
+          })
+          .catch((err) => {
+            console.log(err);
+            this.$buefy.toast.open({
+              message: "Ocurrio un error, vuelve a interntarlo.",
+              type: "is-danger",
+            });
+          });
+      } else {
+        CharacterRepository.update(this.workingItem, this.workingItem.ID)
+          .then((res) => {
+            this.$buefy.toast.open({
+              message: "Personaje editado Corractamente!",
+              type: "is-success",
+            });
+            this.isComponentModalActive = false;
+            this.workingItem.Name = this.workingItem.NickName = "";
+            this.editedIndex = null;
+            this.Characters.splice(this.editedIndex, 1, res.results);
+          })
+          .catch((err) => {
+            console.log(err);
+            this.$buefy.toast.open({
+              message: "Ocurrio un error, vuelve a interntarlo.",
+              type: "is-danger",
+            });
+          });
+      }
     },
   },
 };
