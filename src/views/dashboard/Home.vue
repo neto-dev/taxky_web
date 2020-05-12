@@ -36,6 +36,7 @@
           size="is-medium"
           icon-right="account-plus"
           class="add-no-character"
+          @click="$router.push({ name: 'Characters' })"
           >Registrar Participante</b-button
         >
       </div>

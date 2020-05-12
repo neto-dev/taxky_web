@@ -2,10 +2,10 @@
 
 > En caso de nuevas features agregarlas al final del documento con el mismo formato.
 
-- [ ] CRUD awards
-  - [ ] Crear Premio
-  - [ ] Editar Premio
-  - [ ] Eliminar Premio
+- [x] CRUD awards
+  - [x] Crear Premio
+  - [x] Editar Premio
+  - [x] Eliminar Premio
 - [ ] CRUD tasks
   - [ ] Crear Tarea
   - [ ] Editar Tarea
