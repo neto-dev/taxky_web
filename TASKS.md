@@ -6,10 +6,10 @@
   - [x] Crear Premio
   - [x] Editar Premio
   - [x] Eliminar Premio
-- [ ] CRUD tasks
-  - [ ] Crear Tarea
-  - [ ] Editar Tarea
-  - [ ] Eliminar Tarea
+- [x] CRUD tasks
+  - [x] Crear Tarea
+  - [x] Editar Tarea
+  - [x] Eliminar Tarea
 - [ ] Asignar tarea terminada a personaje
 - [ ] Posibilidad de que el personaje intercambie puntos por premios
 - [ ] Lista de tareas realizadas/puntos ganados

@@ -8,21 +8,14 @@
       <b-table
         style="margin-top: 50px"
         empty
-        :data="tasks"
+        :data="Tasks"
         :loading="loading"
         paginated
-        backend-pagination
-        :total="total"
         :per-page="perPage"
-        @page-change="onPageChange"
-        aria-next-label="Next page"
-        aria-previous-label="Previous page"
-        aria-page-label="Page"
-        aria-current-label="Current page"
-        backend-sorting
-        :default-sort-direction="defaultSortOrder"
-        :default-sort="[sortField, sortOrder]"
-        @sort="onSort"
+        aria-next-label="Sig"
+        aria-previous-label="Prev"
+        aria-page-label="Pagina"
+        aria-current-label="Pagina Actual"
       >
         <template slot-scope="props">
           <b-table-column field="Name" label="Nombre" sortable>
@@ -41,67 +34,260 @@
               type="is-info"
               outlined
               icon-left="account-edit"
+              @click="editItem(props.row)"
             >
-              
             </b-button>
-            
           </b-table-column>
           <b-table-column centered label="Eliminar">
             <b-button
               type="is-danger"
               outlined
               icon-left="delete-outline"
+              @click="remove(props.row)"
             >
-              
             </b-button>
           </b-table-column>
         </template>
-        <template slot="empty">
-                <section class="section">
-                    <div class="content has-text-grey has-text-centered">
-                        <p>
-                            <b-icon
-                                icon="emoticon-sad"
-                                size="is-large">
-                            </b-icon>
-                        </p>
-                        <p>Aún no se registran tareas a tu perfil.</p>
-                        <b-button
+        <template slot="footer" v-if="!isCustom">
+          <div class="has-text-right">
+            <b-button
               type="is-primary"
               outlined
               icon-left="plus"
+              @click="isComponentModalActive = true"
             >
               Registrar nuevo
             </b-button>
-                    </div>
-                </section>
-            </template>
+          </div>
+        </template>
+        <template slot="empty">
+          <section class="section">
+            <div class="content has-text-grey has-text-centered">
+              <p>
+                <b-icon icon="emoticon-sad" size="is-large"> </b-icon>
+              </p>
+              <p>Aún no se registran Tareas a tu perfil.</p>
+              <b-button
+                type="is-primary"
+                outlined
+                icon-left="plus"
+                @click="isComponentModalActive = true"
+              >
+                Registrar nuevo
+              </b-button>
+            </div>
+          </section>
+        </template>
       </b-table>
     </div>
+    <b-modal
+      :active.sync="isComponentModalActive"
+      has-modal-card
+      trap-focus
+      :destroy-on-hide="false"
+      aria-role="dialog"
+      aria-modal
+    >
+      <div class="modal-card" style="width: auto">
+        <ValidationObserver
+          class="modal-card-body"
+          ref="observer"
+          v-slot="{ passes }"
+        >
+          <header class="modal-card-head">
+            <p class="modal-card-title">{{ formTitle }}</p>
+          </header>
+          <section class="modal-card-body">
+            <ValidationProvider
+              rules="required"
+              name="Name"
+              v-slot="{ errors, valid }"
+            >
+              <b-field
+                :type="{ 'is-danger': errors[0], 'is-success': valid }"
+                :message="errors"
+              >
+                <b-input
+                  v-model="workingItem.Name"
+                  placeholder="Nombre"
+                  size="is-medium"
+                >
+                </b-input>
+              </b-field>
+            </ValidationProvider>
+            <ValidationProvider
+              rules="required"
+              name="Description"
+              v-slot="{ errors, valid }"
+            >
+              <b-field
+                :type="{ 'is-danger': errors[0], 'is-success': valid }"
+                :message="errors"
+              >
+                <b-input
+                  v-model="workingItem.Description"
+                  placeholder="Descripción"
+                  size="is-medium"
+                >
+                </b-input>
+              </b-field>
+            </ValidationProvider>
+            <ValidationProvider
+              rules="required"
+              name="Description"
+              v-slot="{ errors, valid }"
+            >
+              <b-field
+                :type="{ 'is-danger': errors[0], 'is-success': valid }"
+                :message="errors"
+                label="Puntos"
+              >
+                <b-numberinput v-model="workingItem.Points"></b-numberinput>
+              </b-field>
+            </ValidationProvider>
+          </section>
+          <footer class="modal-card-foot">
+            <button
+              class="button"
+              type="button"
+              @click="isComponentModalActive = false"
+            >
+              Cerrar
+            </button>
+            <button @click="passes(submit)" class="button is-primary">
+              Registrar
+            </button>
+          </footer>
+        </ValidationObserver>
+      </div>
+    </b-modal>
   </section>
 </template>
 
 <script>
 import Navbar from "@/components/dashboard/Navbar";
+import { ValidationObserver, ValidationProvider } from "vee-validate";
+import UserRepository from "@/repository/users";
+import TaskRepository from "@/repository/tasks";
 
 export default {
   components: {
     Navbar,
+    ValidationObserver,
+    ValidationProvider,
   },
   data: () => ({
-    tasks: [],
-    total: 0,
+    // Variable encargada de activar o desactivar nuestro modal con el cual registramos/editamos información
+    isComponentModalActive: false,
+    // Variable que almacena la información de nuestra tabla
+    Tasks: [],
+    // Variable que nos mostrara un gif de cargando miesntras se carga la información de nuestra tabla
     loading: false,
-    sortField: "vote_count",
-    sortOrder: "desc",
-    defaultSortOrder: "desc",
-    page: 1,
+    // Numero de registros por pagina/paginación
     perPage: 5,
+
+    // Variable para almacenar el valor del id de nuestro usuario logeado !Lo utilizaomos para referenciar información
+    userID: null,
+
+    // Variable donde guardaremos el indice del elemento a editar
+    editedIndex: null,
+
+    // Objeto en el que almacenamos información temporal para enviar a la api rest editar/crear
+    workingItem: {
+      Name: "",
+      Description: "",
+      Points: 0,
+      UserID: null,
+    },
   }),
+  computed: {
+    formTitle() {
+      return this.editedIndex === null ? "Nueva Tarea" : "Editar Tarea";
+    },
+  },
   mounted() {
-    this.getCharacters();
+    this.getTasks();
   },
   methods: {
+    getTasks() {
+      this.loading = true;
+      let userParse = JSON.parse(localStorage.user_data);
+      this.userID = userParse.ID;
+      let id = userParse.ID;
+      UserRepository.show(id).then((data) => {
+        this.Tasks = data.results.Tasks;
+        this.loading = false;
+      });
+    },
+    editItem(item) {
+      this.editedIndex = this.Tasks.indexOf(item);
+      this.workingItem = Object.assign({}, item);
+      this.isComponentModalActive = true;
+    },
+    remove(item) {
+      this.$buefy.dialog.confirm({
+        title: "Eliminar Tarea",
+        message: `¿Estas seguro que deseas <b>Eliminar</b> la Tarea <b>${item.Name}</b>? Esta acción no se puede deshacer.`,
+        confirmText: "Eliminar Tarea",
+        type: "is-danger",
+        hasIcon: true,
+        onConfirm: () => this.removeItem(item),
+      });
+    },
+    removeItem(item) {
+      let index = this.Tasks.indexOf(item);
+      TaskRepository.delete(item.ID).then(() => {
+        this.Tasks.splice(index, 1);
+        this.$buefy.toast.open({
+          message: "Tarea Eliminada!",
+          type: "is-success",
+          position: "is-bottom",
+        });
+      });
+    },
+    submit() {
+      if (this.editedIndex === null) {
+        this.workingItem.userID = this.userID;
+        TaskRepository.create(this.workingItem)
+          .then((res) => {
+            this.$buefy.toast.open({
+              message: "Tarea creada Corractamente!",
+              type: "is-success",
+            });
+            this.isComponentModalActive = false;
+            this.workingItem.Name = this.workingItem.Description = "";
+            this.workingItem.Points = 0;
+            this.Tasks.unshift(res.results);
+          })
+          .catch((err) => {
+            console.log(err);
+            this.$buefy.toast.open({
+              message: "Ocurrio un error, vuelve a interntarlo.",
+              type: "is-danger",
+            });
+          });
+      } else {
+        TaskRepository.update(this.workingItem, this.workingItem.ID)
+          .then((res) => {
+            this.$buefy.toast.open({
+              message: "Tarea editada Corractamente!",
+              type: "is-success",
+            });
+            this.isComponentModalActive = false;
+            this.workingItem.Name = this.workingItem.Description = "";
+            this.workingItem.Points = 0;
+            this.editedIndex = null;
+            this.Tasks.splice(this.editedIndex, 1, res.results);
+          })
+          .catch((err) => {
+            console.log(err);
+            this.$buefy.toast.open({
+              message: "Ocurrio un error, vuelve a interntarlo.",
+              type: "is-danger",
+            });
+          });
+      }
+    },
   },
 };
 </script>
