@@ -1,5 +1,25 @@
 <template>
   <b-navbar class="head-navbar">
+    <template slot="start">
+      <b-navbar-item tag="div">
+        <div class="buttons">
+          <!-- <a
+            class="button btn-nav-log-in"
+            target="_blank"
+            href="https://twitter.com/neto_dev"
+          >
+            <i class="mdi mdi-twitter"></i>
+          </a> -->
+          <a
+            class="button btn-nav-register is-rounded"
+            @click="$router.push('/dashboard')"
+          >
+            <i class="mdi mdi-home"></i>
+            <strong style="margin-left: 5px"> Inicio</strong>
+          </a>
+        </div>
+      </b-navbar-item>
+    </template>
     <template slot="end">
       <b-navbar-item tag="div">
         <div class="buttons">

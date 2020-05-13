@@ -10,6 +10,7 @@
   - [x] Crear Tarea
   - [x] Editar Tarea
   - [x] Eliminar Tarea
+- [x] Agregar a menu superior regresar a home
 - [ ] Asignar tarea terminada a personaje
 - [ ] Posibilidad de que el personaje intercambie puntos por premios
 - [ ] Lista de tareas realizadas/puntos ganados
