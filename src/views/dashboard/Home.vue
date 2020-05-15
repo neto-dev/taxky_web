@@ -1,6 +1,11 @@
 <template>
   <section class="dashboard">
     <Navbar></Navbar>
+    <TaskModal
+      v-bind:active="taskModal"
+      @desactiveTaskModal="desactiveTaskModal"
+    ></TaskModal>
+
     <div class="principal-content">
       <img class="monster-dash-1" src="@/assets/monster-dash-1.png" alt="" />
       <img class="monster-dash-2" src="@/assets/monster-dash-2.png" alt="" />
@@ -16,6 +21,7 @@
           v-for="item in characters"
           v-bind:key="item.ID"
           v-bind:dataCharacter="item"
+          @activeTaskModal="activeTaskModal"
         ></CardCharacter>
       </div>
       <div
@@ -70,12 +76,14 @@
 <script>
 import Navbar from "@/components/dashboard/Navbar";
 import CardCharacter from "@/components/dashboard/CardCharacter";
+import TaskModal from "@/components/dashboard/TaskModal";
 import UserRepository from "@/repository/users";
 
 export default {
   components: {
     Navbar,
     CardCharacter,
+    TaskModal,
   },
   data: () => ({
     defaultUsers: [
@@ -99,6 +107,7 @@ export default {
       },
     ],
     characters: [],
+    taskModal: false,
   }),
   mounted() {
     this.getCharacters();
@@ -111,6 +120,12 @@ export default {
         console.log(data);
         this.characters = data.results.Characters;
       });
+    },
+    activeTaskModal() {
+      this.taskModal = true;
+    },
+    desactiveTaskModal() {
+      this.taskModal = false;
     },
   },
 };

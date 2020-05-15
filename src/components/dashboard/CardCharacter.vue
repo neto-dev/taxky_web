@@ -1,7 +1,11 @@
 <template class="template-card">
   <div class="content-cards">
     <div class="card-character">
-      <img :src="avatarImage(dataCharacter.NickName)" class="avatar-img" alt="" />
+      <img
+        :src="avatarImage(dataCharacter.NickName)"
+        class="avatar-img"
+        alt=""
+      />
       <h1 class="character-name">{{ dataCharacter.NickName }}</h1>
       <div class="divider div-transparent div-arrow-down"></div>
       <div class="pints-tasks columns">
@@ -23,6 +27,7 @@
               class="btn-action-task"
               icon-right="plus"
               size="is-large"
+              @click="activeTaskModal"
             />
           </b-tooltip>
         </div>
@@ -49,6 +54,9 @@ export default {
     avatarImage(name) {
       return `https://api.adorable.io/avatars/130/${name}`;
     },
+    activeTaskModal() {
+      this.$emit("activeTaskModal", true);
+    },
   },
 };
 </script>
@@ -67,7 +75,7 @@ export default {
 .btn-action-points:active,
 .btn-action-points:hover,
 .btn-action-points:enabled {
-  background: #F33D47;
+  background: #f33d47;
   color: white;
 }
 
@@ -75,7 +83,7 @@ export default {
 .btn-action-task:active,
 .btn-action-task:hover,
 .btn-action-task:enabled {
-  background: #7063D8;
+  background: #7063d8;
   color: white;
 }
 
@@ -158,7 +166,7 @@ export default {
 
 @media (max-width: 1000px) {
   .content-cards {
-    margin: 75px 30px 10px 30px!important;
+    margin: 75px 30px 10px 30px !important;
   }
 }
 </style>
