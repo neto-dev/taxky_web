@@ -37,6 +37,7 @@
               class="btn-action-points"
               icon-right="cart-plus"
               size="is-large"
+              @click="activeAwardModal"
             />
           </b-tooltip>
         </div>
@@ -56,6 +57,9 @@ export default {
     },
     activeTaskModal() {
       this.$emit("activeTaskModal", true);
+    },
+    activeAwardModal() {
+      this.$emit("activeAwardModal", true);
     },
   },
 };

@@ -1,10 +1,27 @@
 <template>
   <section class="dashboard">
     <Navbar></Navbar>
-    <TaskModal
-      v-bind:active="taskModal"
-      @desactiveTaskModal="desactiveTaskModal"
-    ></TaskModal>
+    <b-modal :active.sync="taskModal" :width="800" scroll="keep">
+      <div class="columns is-multiline is-variable ">
+        <TaskModal
+          class="column is-11-mobile is-two-fifths-tablet is-one-quarter-desktop is-one-quarter-widescreen is-one-quarter-fullhd"
+          v-for="item in Tasks"
+          v-bind:key="item.ID"
+          v-bind:task="item"
+        ></TaskModal>
+      </div>
+    </b-modal>
+
+    <b-modal :active.sync="awardModal" :width="800" scroll="keep">
+      <div class="columns is-multiline is-variable ">
+        <AwardModal
+          class="column is-11-mobile is-two-fifths-tablet is-one-quarter-desktop is-one-quarter-widescreen is-one-quarter-fullhd"
+          v-for="item in Awards"
+          v-bind:key="item.ID"
+          v-bind:award="item"
+        ></AwardModal>
+      </div>
+    </b-modal>
 
     <div class="principal-content">
       <img class="monster-dash-1" src="@/assets/monster-dash-1.png" alt="" />
@@ -22,6 +39,7 @@
           v-bind:key="item.ID"
           v-bind:dataCharacter="item"
           @activeTaskModal="activeTaskModal"
+          @activeAwardModal="activeAwardModal"
         ></CardCharacter>
       </div>
       <div
@@ -77,6 +95,7 @@
 import Navbar from "@/components/dashboard/Navbar";
 import CardCharacter from "@/components/dashboard/CardCharacter";
 import TaskModal from "@/components/dashboard/TaskModal";
+import AwardModal from "@/components/dashboard/AwardModal";
 import UserRepository from "@/repository/users";
 
 export default {
@@ -84,6 +103,7 @@ export default {
     Navbar,
     CardCharacter,
     TaskModal,
+    AwardModal,
   },
   data: () => ({
     defaultUsers: [
@@ -107,25 +127,31 @@ export default {
       },
     ],
     characters: [],
+    Tasks: [],
+    Awards: [],
     taskModal: false,
+    awardModal: false,
   }),
   mounted() {
-    this.getCharacters();
+    this.getDataInitialize();
   },
   methods: {
-    getCharacters() {
+    getDataInitialize() {
       let userParse = JSON.parse(localStorage.user_data);
       let id = userParse.ID;
       UserRepository.show(id).then((data) => {
-        console.log(data);
         this.characters = data.results.Characters;
+        this.Tasks = data.results.Tasks;
+        this.Awards = data.results.Awards;
       });
     },
+
     activeTaskModal() {
       this.taskModal = true;
     },
-    desactiveTaskModal() {
-      this.taskModal = false;
+
+    activeAwardModal() {
+      this.awardModal = true;
     },
   },
 };
