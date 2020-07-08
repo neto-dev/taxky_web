@@ -30,12 +30,12 @@
         Taxky - Dashboard
       </h1>
       <div
-        v-if="characters.length > 0"
+        v-if="Characters.length > 0"
         class="columns is-multiline is-variable  content-cards-character"
       >
         <CardCharacter
           class="column is-11-mobile is-two-fifths-tablet is-one-quarter-desktop is-one-quarter-widescreen is-one-quarter-fullhd"
-          v-for="item in characters"
+          v-for="item in Characters"
           v-bind:key="item.ID"
           v-bind:dataCharacter="item"
           @activeTaskModal="activeTaskModal"
@@ -43,7 +43,7 @@
         ></CardCharacter>
       </div>
       <div
-        v-if="characters.length === 0"
+        v-if="Characters.length === 0"
         class="columns is-desktop content-cards-character"
       >
         <CardCharacter
@@ -53,7 +53,7 @@
           v-bind:dataCharacter="item"
         ></CardCharacter>
       </div>
-      <div v-if="characters.length === 0" class="no-characters">
+      <div v-if="Characters.length === 0" class="no-characters">
         <h2>Aun no haz registrado participantes. ¿Que esperas?</h2>
         <b-button
           type="is-primary"
@@ -96,7 +96,7 @@ import Navbar from "@/components/dashboard/Navbar";
 import CardCharacter from "@/components/dashboard/CardCharacter";
 import TaskModal from "@/components/dashboard/TaskModal";
 import AwardModal from "@/components/dashboard/AwardModal";
-import UserRepository from "@/repository/users";
+// import UserRepository from "@/repository/users";
 
 export default {
   components: {
@@ -104,6 +104,12 @@ export default {
     CardCharacter,
     TaskModal,
     AwardModal,
+  },
+  computed: {
+    user() {
+      console.log("Setore 1: ", this.$store.state.user);
+      return this.$store.state.user;
+    },
   },
   data: () => ({
     defaultUsers: [
@@ -126,24 +132,33 @@ export default {
         Tasks: 8,
       },
     ],
-    characters: [],
+    Characters: [],
     Tasks: [],
     Awards: [],
     taskModal: false,
     awardModal: false,
   }),
   mounted() {
+    if (this.$store.state.user.ID !== null) {
+      let userParse = JSON.parse(localStorage.user_data);
+      let id = userParse.ID;
+      this.$store
+        .dispatch("getUser", id)
+        .then((resp) => {
+          this.user = resp;
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    }
     this.getDataInitialize();
   },
   methods: {
     getDataInitialize() {
-      let userParse = JSON.parse(localStorage.user_data);
-      let id = userParse.ID;
-      UserRepository.show(id).then((data) => {
-        this.characters = data.results.Characters;
-        this.Tasks = data.results.Tasks;
-        this.Awards = data.results.Awards;
-      });
+      console.log("Setore: ", this.user);
+      this.Characters = this.user.Characters;
+      this.Tasks = this.user.Tasks;
+      this.Awards = this.user.Awards;
     },
 
     activeTaskModal() {

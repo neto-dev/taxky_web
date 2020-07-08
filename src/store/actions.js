@@ -1,4 +1,4 @@
-import axios from 'axios'
+import axios from "axios";
 import UserRepository from "../repository/users";
 
 export default {
@@ -65,6 +65,25 @@ export default {
       localStorage.removeItem("user_data");
       delete axios.defaults.headers.common["Authorization"];
       resolve();
+    });
+  },
+  getUser({ commit }, id) {
+    return new Promise((resolve, reject) => {
+      UserRepository.show(id)
+        .then((resp) => {
+          console.log("Data: ", resp);
+          let user = resp.results;
+          commit("setUser", {
+            user: {
+              ...user,
+            },
+          });
+          resolve(resp);
+        })
+        .catch((err) => {
+          console.log(err);
+          reject(err);
+        });
     });
   },
 };

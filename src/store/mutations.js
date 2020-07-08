@@ -16,4 +16,7 @@ export default {
     state.token = "";
     state.user = {};
   },
+  setUser(state, payload) {
+    state.user = payload;
+  },
 };
